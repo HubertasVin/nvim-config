@@ -25,6 +25,21 @@ map("v", "<leader>f", function()
   end)
 end, { desc = "Format code selection" })
 
+-- Close blink completion, if it is visible
+map("i", "<Esc>", function()
+  local ok, blink = pcall(require, "blink.cmp")
+  if ok and blink and (blink.is_visible and blink.is_visible()) then
+    if blink.cancel then
+      blink.cancel()
+    end
+    if blink.hide then
+      blink.hide()
+    end
+    return ""
+  end
+  return vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
+end, { expr = true, silent = true, desc = "Close completion if visible, else Esc" })
+
 -- Open CMD line without holding shift
 map("n", ";", ":")
 map("v", ";", ":")

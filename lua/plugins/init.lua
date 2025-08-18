@@ -51,7 +51,7 @@ return {
     end,
   },
   {
-    import = "nvchad.blink.lazyspec"
+    import = "nvchad.blink.lazyspec",
   },
   {
     "towolf/vim-helm",
