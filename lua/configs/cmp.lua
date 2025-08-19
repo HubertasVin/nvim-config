@@ -1,4 +1,4 @@
-local default_sources = { "lsp", "path", "calc", "snippets", "buffer", "lazydev" }
+local default_sources = { "lsp", "path", "calc", "snippets", "lazydev" }
 local debug_sources = vim.list_extend(vim.deepcopy(default_sources), { "dap" })
 
 require("blink.cmp").setup {
