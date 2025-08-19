@@ -51,7 +51,19 @@ return {
     end,
   },
   {
-    import = "nvchad.blink.lazyspec",
+    "xzbdmw/colorful-menu.nvim",
+    lazy = true,
+    main = "colorful-menu",
+    opts = {},
+  },
+  {
+    "Saghen/blink.cmp",version = "1.*",
+    dependencies = {
+      { "Saghen/blink.compat", version = "2.*", opts = {} },
+      { "hrsh7th/cmp-calc", lazy = true },
+      { "folke/lazydev.nvim", ft = "lua", opts = {} },
+      { "xzbdmw/colorful-menu.nvim", main = "colorful-menu", opts = {} },
+    },
   },
   {
     "towolf/vim-helm",
@@ -112,7 +124,7 @@ return {
     config = function()
       require("hop").setup()
     end,
-    event = "BufRead", -- Lazy load on buffer read
+    event = "BufRead",
   },
 
   {

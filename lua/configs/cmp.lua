@@ -1,42 +1,125 @@
-local cmp = require'cmp'
+local default_sources = { "lsp", "path", "calc", "snippets", "buffer", "lazydev" }
+local debug_sources = vim.list_extend(vim.deepcopy(default_sources), { "dap" })
 
-cmp.setup({
-  snippet = {
-    expand = function(args)
-      require('luasnip').lsp_expand(args.body)
-    end,
+require("blink.cmp").setup {
+  keymap = {
+    preset = "enter",
+    ["<Tab>"] = {
+      function(cmp)
+        if cmp.is_menu_visible() then
+          return require("blink.cmp").select_next()
+        elseif cmp.snippet_active() then
+          return cmp.snippet_forward()
+        end
+      end,
+      "fallback",
+    },
+    ["<S-Tab>"] = {
+      function(cmp)
+        if cmp.is_menu_visible() then
+          return require("blink.cmp").select_prev()
+        elseif cmp.snippet_active() then
+          return cmp.snippet_backward()
+        end
+      end,
+      "fallback",
+    },
   },
-  mapping = {
-    ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
-    ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
-    ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
-    ['<C-y>'] = cmp.config.disable, -- Specify `cmp.config.disable` if you want to remove the default `<C-y>` mapping.
-    ['<C-e>'] = cmp.mapping({
-      i = cmp.mapping.abort(),
-      c = cmp.mapping.close(),
-    }),
-    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+  signature = {
+    enabled = true,
+    window = {
+      border = "rounded",
+      scrollbar = true,
+    },
   },
-  sources = cmp.config.sources({
-    { name = 'nvim_lsp' },
-    { name = 'luasnip' },
-  }, {
-    { name = 'buffer' },
-  })
-})
-
--- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
-cmp.setup.cmdline('/', {
   sources = {
-    { name = 'buffer' }
-  }
-})
+    default = default_sources,
+    per_filetype = { ["dap-repl"] = debug_sources, ["dap-view"] = debug_sources },
+    providers = {
+      calc = {
+        name = "calc",
+        module = "blink.compat.source",
+      },
+      lazydev = {
+        name = "LazyDev",
+        module = "lazydev.integrations.blink",
+        fallbacks = { "lsp" },
+      },
+    },
+  },
+  appearance = {
+    kind_icons = {
+      Snippet = " ",
+    },
+  },
+  cmdline = {
+    completion = {
+      menu = {
+        auto_show = true,
+      },
+      ghost_text = {
+        enabled = false,
+      },
+      list = {
+        selection = {
+          preselect = false,
+          auto_insert = true,
+        },
+      },
+    },
+  },
+  completion = {
+    keyword = {
+      range = "prefix",
+    },
+    list = {
+      selection = {
+        preselect = false,
+        auto_insert = true,
+      },
+    },
+    accept = {
+      auto_brackets = {
+        enabled = true,
+        override_brackets_for_filetypes = {
+          tex = { "{", "}" },
+        },
+      },
+    },
+    menu = {
+      min_width = 20,
+      border = "rounded",
+      winhighlight = "Normal:Normal,FloatBorder:FloatBorder,CursorLine:BlinkCmpMenuSelection,Search:None",
+      draw = {
+        columns = { { "kind_icon" }, { "label", gap = 1 }, { "source" } },
+        components = {
+          label = {
+            text = require("colorful-menu").blink_components_text,
+            highlight = require("colorful-menu").blink_components_highlight,
+          },
+          source = {
+            text = function(ctx)
+              local map = {
+                ["lsp"] = "[ ]",
+                ["path"] = "[󰉋 ]",
+                ["snippets"] = "[ ]",
+              }
 
--- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-cmp.setup.cmdline(':', {
-  sources = cmp.config.sources({
-    { name = 'path' }
-  }, {
-    { name = 'cmdline' }
-  })
-})
+              return map[ctx.item.source_id]
+            end,
+            highlight = "BlinkCmpDoc",
+          },
+        },
+      },
+    },
+    documentation = {
+      auto_show = true,
+      auto_show_delay_ms = 0,
+      update_delay_ms = 50,
+      window = {
+        max_width = math.min(80, vim.o.columns),
+        border = "rounded",
+      },
+    },
+  },
+}

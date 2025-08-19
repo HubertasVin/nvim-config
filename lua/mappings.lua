@@ -11,6 +11,7 @@ map("n", "gd", vim.lsp.buf.definition, { desc = "Code Go to Definition", table.u
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action", table.unpack(opts) })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Code Rename", table.unpack(opts) })
 map("n", "<leader>cu", require("telescope.builtin").lsp_references, { noremap = true, silent = true })
+map("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Show diagnostic details" })
 
 -- Format related mappings
 map("n", "<leader>cf", function()
