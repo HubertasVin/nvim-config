@@ -91,6 +91,19 @@ lspconfig.rust_analyzer.setup({
 	},
 })
 
+-- Set filetype to helm if detected
+lspconfig.yamlls.setup({
+  on_attach = function(client, bufnr)
+    if vim.bo[bufnr].filetype == "helm" then
+      client.stop()
+      return
+    end
+    on_attach(client, bufnr)
+  end,
+  capabilities = capabilities,
+  filetypes = { "yaml", "yml" },
+})
+
 -- Global default border for all LSP float windows
 local orig_open_floating = vim.lsp.util.open_floating_preview
 function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
