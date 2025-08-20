@@ -3,18 +3,27 @@ local on_init = require("nvchad.configs.lspconfig").on_init
 local capabilities = require("blink.cmp").get_lsp_capabilities()
 
 local lspconfig = require "lspconfig"
+
+local function mason_installed(name)
+  local ok, mr = pcall(require, "mason-registry")
+  if not ok then return false end
+  local ok_pkg, pkg = pcall(mr.get_package, name)
+  if not ok_pkg then return false end
+  return pkg:is_installed()
+end
+
 local servers = {
   "angularls",
   "ansiblels",
   "bashls",
   "clangd",
-  "csharp_ls",
+  mason_installed("csharp-language-server") and "csharp_ls" or nil,
   "cssls",
   "dockerls",
   "docker_compose_language_service",
   "html",
   "helm_ls",
-  "gopls",
+  mason_installed("gopls") and "gopls" or nil,
   "jdtls",
   "jsonls",
   "lemminx",
