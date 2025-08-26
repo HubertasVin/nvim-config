@@ -1,6 +1,6 @@
 require "nvchad.mappings"
 
--- add yours here
+local section = require("utils.section_nav")
 
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
@@ -59,3 +59,7 @@ map("v", "s", '"_s', { desc = "Change selection" })
 -- Remap '>' and '<' to keep selection in visual mode
 map("v", "<", "<gv")
 map("v", ">", ">gv")
+
+-- Improved "{" and "}" to move to a non blank line, instead of a blank line
+map({ "n", "x", "o" }, "{", function() section.section_nav("prev_start") end, { silent = true, desc = "Move cursor to block start" })
+map({ "n", "x", "o" }, "}", function() section.section_nav("next_end") end, { silent = true, desc = "Move cursor to block end" })
