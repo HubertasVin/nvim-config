@@ -1,5 +1,3 @@
-local M = {}
-
 local function is_blank(ln)
   return vim.fn.getline(ln):match "^%s*$" ~= nil
 end
@@ -73,11 +71,9 @@ local function step(which)
   place(edge, dir)
 end
 
-function M.section_nav(which)
+function section_nav(which)
   local n = vim.v.count1
   for _ = 1, n do
     step(which)
   end
 end
-
-return M
