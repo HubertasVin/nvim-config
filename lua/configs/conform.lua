@@ -1,3 +1,15 @@
+local constants = require "configs.format_const"
+
+local function rustfmt_config_path(width)
+  local dir = vim.fn.stdpath "cache" .. "/conform_rustfmt"
+  vim.fn.mkdir(dir, "p")
+  local path = string.format("%s/rustfmt_%d.toml", dir, width)
+  local f = io.open(path, "w")
+  f:write("max_width = " .. width .. "\n")
+  f:close()
+  return path
+end
+
 local options = {
   formatters_by_ft = {
     angular = { "prettier" },
@@ -12,7 +24,6 @@ local options = {
     yaml = { "prettier" },
     jsx = { "prettier" },
     lua = { "stylua" },
-    php = { "phpcbf" },
     python = { "black" },
     rust = { "rustfmt" },
     scss = { "prettier" },
@@ -25,28 +36,40 @@ local options = {
   formatters = {
     black = {
       command = "black",
-      args = { "--quiet", "-" },
+      args = { "--quiet", "--line-length", tostring(constants.maxLineLength), "-" },
       stdin = true,
     },
+
     ["clang-format"] = {
       command = "clang-format",
-      args = { "--style={IndentWidth: 4, TabWidth: 4}" },
+      args = { string.format("--style={IndentWidth: 4, TabWidth: 4, ColumnLimit: %d}", constants.maxLineLength) },
       stdin = true,
     },
+
     ["google-java-format"] = {
       command = "google-java-format",
       args = { "--aosp", "-" },
       stdin = true,
     },
+
     ["rustfmt"] = {
       command = "rustfmt",
-      args = { "--emit=stdout" },
+      args = { "--emit=stdout", "--config-path", rustfmt_config_path(constants.maxLineLength) },
       stdin = true,
     },
+
     golines = {
       command = "golines",
-      args    = { "-m", "100" },
-      stdin   = true,
+      args = { "-m", tostring(constants.maxLineLength) },
+      stdin = true,
+    },
+
+    prettier = {
+      prepend_args = { "--print-width", tostring(constants.maxLineLength) },
+    },
+
+    stylua = {
+      prepend_args = { "--column-width", tostring(constants.maxLineLength) },
     },
   },
 }

@@ -18,7 +18,6 @@ vim.api.nvim_create_autocmd("FileType", {
     "javascript",
     "javascriptreact",
     "json",
-    "php",
     "python",
     "rust",
     "sh",
@@ -79,11 +78,6 @@ vim.api.nvim_create_autocmd("FileType", {
       -- For Lua files
       vim.bo.shiftwidth = 2
       vim.bo.tabstop = 2
-      vim.bo.expandtab = true
-    elseif vim.bo.filetype == "php" then
-      -- For PHP files
-      vim.bo.shiftwidth = 4
-      vim.bo.tabstop = 4
       vim.bo.expandtab = true
     elseif vim.bo.filetype == "python" then
       -- For Python files
