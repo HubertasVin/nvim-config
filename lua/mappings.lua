@@ -5,12 +5,21 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
 -- LSP related mappings with descriptions
-map("n", "K", require("utils.hover").hover_with_diagnostics, { desc = "Code Hover + diagnostics", table.unpack(opts) })
-map("n", "gd", vim.lsp.buf.definition, { desc = "Code Go to Definition", table.unpack(opts) })
+map(
+  "n",
+  "K",
+  require("utils.hover").hover_with_diagnostics,
+  { desc = "Code Description and diagnostics", table.unpack(opts) }
+)
+map(
+  "n",
+  "<leader>cd",
+  require("utils.definition").definition_popup,
+  { desc = "Code Go to definition", table.unpack(opts) }
+)
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action", table.unpack(opts) })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Code Rename", table.unpack(opts) })
 map("n", "<leader>cu", require("telescope.builtin").lsp_references, { noremap = true, silent = true })
-map("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Show diagnostic details" })
 
 -- Format related mappings
 map("n", "<leader>cf", function()
