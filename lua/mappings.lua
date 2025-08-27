@@ -5,7 +5,7 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
 -- LSP related mappings with descriptions
-map("n", "K", vim.lsp.buf.hover, { desc = "Code Hover", table.unpack(opts) })
+map("n", "K", require("utils.hover").hover_with_diagnostics, { desc = "Code Hover + diagnostics", table.unpack(opts) })
 map("n", "gd", vim.lsp.buf.definition, { desc = "Code Go to Definition", table.unpack(opts) })
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action", table.unpack(opts) })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Code Rename", table.unpack(opts) })
@@ -61,8 +61,8 @@ map("v", ">", ">gv")
 
 -- Improved "{" and "}" to move to a non blank line, instead of a blank line
 map({ "n", "x", "o" }, "{", function()
-  section_nav "prev_start"
+  require("utils.section_nav").section_nav "prev_start"
 end, { silent = true, desc = "Move cursor to block start" })
 map({ "n", "x", "o" }, "}", function()
-  section_nav "next_end"
+  require("utils.section_nav").section_nav "next_end"
 end, { silent = true, desc = "Move cursor to block end" })

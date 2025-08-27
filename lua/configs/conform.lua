@@ -1,11 +1,19 @@
 local constants = require "configs.format_const"
 
-local function rustfmt_config_path(width)
+local function indent_for(ft)
+  local size = (constants.indent_size and constants.indent_size[ft]) or constants.default_indent_size or 4
+  local use_tabs = constants.use_tabs == true
+  return size, use_tabs
+end
+
+local function rustfmt_config_path(width, indent_size, use_tabs)
   local dir = vim.fn.stdpath "cache" .. "/conform_rustfmt"
   vim.fn.mkdir(dir, "p")
-  local path = string.format("%s/rustfmt_%d.toml", dir, width)
-  local f = io.open(path, "w")
+  local path = string.format("%s/rustfmt_%d_%d_%s.toml", dir, width, indent_size, use_tabs and "tabs" or "spaces")
+  local f = assert(io.open(path, "w"))
   f:write("max_width = " .. width .. "\n")
+  f:write("hard_tabs = " .. tostring(use_tabs) .. "\n")
+  f:write("tab_spaces = " .. indent_size .. "\n")
   f:close()
   return path
 end
@@ -13,12 +21,14 @@ end
 local options = {
   formatters_by_ft = {
     angular = { "prettier" },
+    bash = { "beautysh" },
+    sh = { "beautysh" },
+    zsh = { "beautysh" },
     c = { "clang-format" },
     cpp = { "clang-format" },
     css = { "prettier" },
     html = { "prettier" },
     go = { "gofumpt", "golines" },
-    java = { "google-java-format" },
     javascript = { "prettier" },
     json = { "prettier" },
     yaml = { "prettier" },
@@ -28,48 +38,125 @@ local options = {
     rust = { "rustfmt" },
     scss = { "prettier" },
     typescript = { "prettier" },
-    bash = { "beautysh" },
-    sh = { "beautysh" },
-    zsh = { "beautysh" },
+    tsx = { "prettier" },
   },
 
   formatters = {
     black = {
       command = "black",
-      args = { "--quiet", "--line-length", tostring(constants.maxLineLength), "-" },
+      args = function()
+        return { "--quiet", "--line-length", tostring(constants.maxLineLength), "-" }
+      end,
       stdin = true,
     },
 
     ["clang-format"] = {
       command = "clang-format",
-      args = { string.format("--style={IndentWidth: 4, TabWidth: 4, ColumnLimit: %d}", constants.maxLineLength) },
+      args = function()
+        local indent, use_tabs = indent_for(vim.bo.filetype)
+        local style = string.format(
+          "--style={UseTab: %s, IndentWidth: %d, TabWidth: %d, ColumnLimit: %d}",
+          use_tabs and "Always" or "Never",
+          indent,
+          indent,
+          constants.maxLineLength
+        )
+        return { style }
+      end,
       stdin = true,
     },
 
-    ["google-java-format"] = {
-      command = "google-java-format",
-      args = { "--aosp", "-" },
-      stdin = true,
-    },
-
-    ["rustfmt"] = {
+    rustfmt = {
       command = "rustfmt",
-      args = { "--emit=stdout", "--config-path", rustfmt_config_path(constants.maxLineLength) },
+      args = function()
+        local indent, use_tabs = indent_for(vim.bo.filetype)
+        local cfg = rustfmt_config_path(constants.maxLineLength, indent, use_tabs)
+        return { "--emit=stdout", "--config-path", cfg }
+      end,
       stdin = true,
     },
 
     golines = {
       command = "golines",
-      args = { "-m", tostring(constants.maxLineLength) },
+      args = function()
+        return { "-m", tostring(constants.maxLineLength) }
+      end,
       stdin = true,
     },
 
     prettier = {
-      prepend_args = { "--print-width", tostring(constants.maxLineLength) },
+      command = "prettier",
+      args = function(ctx)
+        local indent, use_tabs = indent_for(vim.bo.filetype)
+
+        local ft = vim.bo.filetype
+        local ext_map = {
+          javascript = "js",
+          javascriptreact = "jsx",
+          typescript = "ts",
+          typescriptreact = "tsx",
+          json = "json",
+          css = "css",
+          scss = "scss",
+          html = "html",
+          yaml = "yml",
+          yml = "yml",
+          markdown = "md",
+        }
+        local fallback = "stdin." .. (ext_map[ft] or "txt")
+
+        local name = (ctx and ctx.filename) or vim.api.nvim_buf_get_name(0)
+        if not name or name == "" then
+          name = fallback
+        end
+
+        return {
+          "--stdin-filepath",
+          name,
+          "--print-width",
+          tostring(constants.maxLineLength),
+          "--tab-width",
+          tostring(indent),
+          use_tabs and "--use-tabs" or "--no-use-tabs",
+        }
+      end,
+      stdin = true,
+      cwd = require("conform.util").root_file { ".prettierrc", ".prettierrc.json", ".prettierrc.js", "package.json" },
+      try_node_modules = true,
     },
 
     stylua = {
-      prepend_args = { "--column-width", tostring(constants.maxLineLength) },
+      command = "stylua",
+      args = function(ctx)
+        local indent, use_tabs = indent_for(vim.bo.filetype)
+        local name = (ctx and ctx.filename) or vim.api.nvim_buf_get_name(0)
+        if not name or name == "" then
+          name = "stdin.lua"
+        end
+
+        return {
+          "--search-parent-directories",
+          "--stdin-filepath",
+          name,
+          "--column-width",
+          tostring(constants.maxLineLength),
+          "--indent-type",
+          use_tabs and "Tabs" or "Spaces",
+          "--indent-width",
+          tostring(indent),
+          "-",
+        }
+      end,
+      stdin = true,
+    },
+
+    beautysh = {
+      command = "beautysh",
+      args = function()
+        local indent = select(1, indent_for(vim.bo.filetype))
+        return { "--indent-size", tostring(indent), "$FILENAME" }
+      end,
+      stdin = false,
     },
   },
 }
