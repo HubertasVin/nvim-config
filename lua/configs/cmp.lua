@@ -34,7 +34,7 @@ require("blink.cmp").setup {
   },
   sources = {
     default = default_sources,
-    per_filetype = { ["dap-repl"] = debug_sources, ["dap-view"] = debug_sources },
+    per_filetype = { ["dap-repl"] = debug_sources, ["dap-view"] = debug_sources, dockerfile = {} },
     providers = {
       calc = {
         name = "calc",
