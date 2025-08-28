@@ -1,76 +1,191 @@
 local M = {}
 
-local function is_blank(ln)
-  return vim.fn.getline(ln):match "^%s*$" ~= nil
+local DIR_DOWN = 1
+local DIR_UP = -1
+
+local function is_blank_line(line)
+  return vim.fn.getline(line):match "^%s*$" ~= nil
 end
 
--- Keep a line number within [1, $] and return both clamped line and last line
-local function clamp(ln)
+local function clamp_line(line)
   local last = vim.fn.line "$"
-  if ln < 1 then
-    ln = 1
-  elseif ln > last then
-    ln = last
+  if line < 1 then
+    line = 1
+  elseif line > last then
+    line = last
   end
-  return ln, last
+  return line, last
 end
 
--- From a starting line, walk in `dir` (1 down, -1 up) until a nonblank is found.
-local function scan_to_nonblank(ln, dir, last)
-  local bound = dir > 0 and last or 1
-  while ln ~= bound and is_blank(ln) do
-    ln = ln + dir
+local function seek_nonblank(line, direction, last)
+  local bound = direction > 0 and last or 1
+  while line ~= bound and is_blank_line(line) do
+    line = line + direction
   end
-  if is_blank(ln) then
+  if is_blank_line(line) then
     return nil
   end
-  return ln
+  return line
 end
 
--- Get the edge line number of the current text block in `dir`:
--- dir > 0 -> end of block; dir < 0 -> start of block.
-local function block_edge(ln, dir)
-  local cur, last = clamp(ln)
-
-  -- If on blank, try to find the closest nonblank in the requested direction.
-  local pos = is_blank(cur) and scan_to_nonblank(cur, dir, last) or cur
+local function text_block_edge(line, direction)
+  local cur, last = clamp_line(line)
+  local pos = is_blank_line(cur) and seek_nonblank(cur, direction, last) or cur
   if not pos then
-    pos = scan_to_nonblank(cur, -dir, last)
+    pos = seek_nonblank(cur, -direction, last)
   end
-  -- Entire buffer is blank
   if not pos then
-    return (dir > 0) and last or 1
+    return direction > 0 and last or 1
   end
-
-  -- Walk to the edge of the contiguous nonblank run
-  local nxt = pos + dir
-  while nxt >= 1 and nxt <= last and not is_blank(nxt) do
-    pos, nxt = nxt, nxt + dir
+  local nxt = pos + direction
+  while nxt >= 1 and nxt <= last and not is_blank_line(nxt) do
+    pos, nxt = nxt, nxt + direction
   end
   return pos
 end
 
--- Move the cursor to the given line and place it at end or start
-local function place(ln, dir)
-  vim.api.nvim_win_set_cursor(0, { ln, 0 })
-  vim.cmd(dir > 0 and "normal! g_" or "normal! ^")
+local function ts_query(lang, name)
+  local ok, q = pcall(vim.treesitter.query.get, lang, name)
+  if ok and q then
+    return q
+  end
+  local ok_compat, q_compat = pcall(vim.treesitter.query.get_query, lang, name)
+  if ok_compat and q_compat then
+    return q_compat
+  end
+  return nil
 end
 
--- Perform one jump:
--- "next_end" -> to end of the current block or the next block;
--- "prev_start" -> to start of the current block or the previous block.
-local function step(which)
-  local dir = (which == "next_end") and 1 or -1
-  local edge = block_edge(vim.fn.line ".", dir)
+local function ts_lang(bufnr)
+  local ft = vim.bo[bufnr].filetype
+  local ok, lang = pcall(function()
+    return (vim.treesitter.language and vim.treesitter.language.get_lang(ft)) or ft
+  end)
+  return ok and lang or ft
+end
 
-  -- If already at the edge, use built-in paragraph move to reach the next/prev block,
-  -- then re-compute the edge there.
-  if vim.fn.line "." == edge then
-    vim.cmd("normal! " .. (dir > 0 and "}" or "{"))
-    edge = block_edge(vim.fn.line ".", dir)
+local function push_block(blocks, seen, node)
+  local srow, _, erow, _ = node:range()
+  if srow and erow and erow > srow then
+    local key = srow .. ":" .. erow
+    if not seen[key] then
+      seen[key] = true
+      blocks[#blocks + 1] = { start_line = srow + 1, end_line = erow + 1, node = node }
+    end
+  end
+end
+
+local function collect_semantic_blocks()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local parser = vim.treesitter.get_parser(bufnr)
+  if not parser then
+    return {}
   end
 
-  place(edge, dir)
+  local tree = parser:parse()[1]
+  if not tree then
+    return {}
+  end
+
+  local root = tree:root()
+  local blocks, seen = {}, {}
+  local lang = ts_lang(bufnr)
+
+  local folds_q = ts_query(lang, "folds")
+  if folds_q then
+    local srow, _, erow, _ = root:range()
+    for id, node in folds_q:iter_captures(root, bufnr, srow, erow + 1) do
+      if folds_q.captures[id] == "fold" then
+        push_block(blocks, seen, node)
+      end
+    end
+  else
+    local locals_q = ts_query(lang, "locals")
+    if locals_q then
+      local srow, _, erow, _ = root:range()
+      for id, node in locals_q:iter_captures(root, bufnr, srow, erow + 1) do
+        if locals_q.captures[id] == "scope" then
+          push_block(blocks, seen, node)
+        end
+      end
+    else
+      local function walk(n)
+        if n:named() then
+          local t = n:type()
+          if not t:find "comment" and not t:find "string" then
+            push_block(blocks, seen, n)
+          end
+        end
+        for child in n:iter_children() do
+          walk(child)
+        end
+      end
+      walk(root)
+    end
+  end
+
+  table.sort(blocks, function(a, b)
+    if a.start_line == b.start_line then
+      return a.end_line < b.end_line
+    end
+    return a.start_line < b.start_line
+  end)
+
+  return blocks
+end
+
+local function boundaries_for(direction)
+  local blocks = collect_semantic_blocks()
+  if #blocks == 0 then
+    return {}
+  end
+  local list = {}
+  for i = 1, #blocks do
+    list[i] = direction > 0 and blocks[i].end_line or blocks[i].start_line
+  end
+  table.sort(list)
+  return list
+end
+
+local function next_semantic_boundary(current_line, direction)
+  local list = boundaries_for(direction)
+  if #list == 0 then
+    return nil
+  end
+  if direction > 0 then
+    for i = 1, #list do
+      if list[i] > current_line then
+        return list[i]
+      end
+    end
+  else
+    for i = #list, 1, -1 do
+      if list[i] < current_line then
+        return list[i]
+      end
+    end
+  end
+  return nil
+end
+
+local function move_cursor(line, direction)
+  vim.api.nvim_win_set_cursor(0, { line, 0 })
+  vim.cmd(direction > 0 and "normal! g_" or "normal! ^")
+end
+
+local function step(which)
+  local direction = which == "next_end" and DIR_DOWN or DIR_UP
+  local current = vim.fn.line "."
+  local target = next_semantic_boundary(current, direction)
+  if not target then
+    local edge = text_block_edge(current, direction)
+    if current == edge then
+      vim.cmd("normal! " .. (direction > 0 and "}" or "{"))
+      edge = text_block_edge(vim.fn.line ".", direction)
+    end
+    target = edge
+  end
+  move_cursor(target, direction)
 end
 
 function M.section_nav(which)
