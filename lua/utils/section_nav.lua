@@ -64,6 +64,19 @@ local function ts_lang(bufnr)
   return ok and lang or ft
 end
 
+local function ts_safe_parser(bufnr)
+  local ok1, parser = pcall(vim.treesitter.get_parser, bufnr)
+  if ok1 and parser then
+    return parser
+  end
+  local lang = ts_lang(bufnr)
+  local ok2, parser_lang = pcall(vim.treesitter.get_parser, bufnr, lang)
+  if ok2 and parser_lang then
+    return parser_lang
+  end
+  return nil
+end
+
 local function push_block(blocks, seen, node)
   local srow, _, erow, _ = node:range()
   if srow and erow and erow > srow then
@@ -77,17 +90,15 @@ end
 
 local function collect_semantic_blocks()
   local bufnr = vim.api.nvim_get_current_buf()
-  local parser = vim.treesitter.get_parser(bufnr)
+  local parser = ts_safe_parser(bufnr)
   if not parser then
     return {}
   end
-
-  local tree = parser:parse()[1]
-  if not tree then
+  local ok_tree, trees = pcall(parser.parse, parser)
+  if not ok_tree or not trees or not trees[1] then
     return {}
   end
-
-  local root = tree:root()
+  local root = trees[1]:root()
   local blocks, seen = {}, {}
   local lang = ts_lang(bufnr)
 
