@@ -24,17 +24,7 @@ map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Code Rename", table.unpack(
 map("n", "<leader>cu", require("telescope.builtin").lsp_references, { noremap = true, silent = true })
 
 -- Format related mappings
-map("n", "<leader>cf", function()
-  require("conform").format()
-end, { desc = "Format code", table.unpack(opts) })
-
-map("v", "<leader>f", function()
-  require("conform").format({ async = true }, function(err)
-    if not err then
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
-    end
-  end)
-end, { desc = "Format code selection" })
+map("n", "<leader>cf", require("conform").format, { desc = "Format File code", table.unpack(opts) })
 
 -- Close blink completion, if it is visible
 map("i", "<Esc>", function()
