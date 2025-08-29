@@ -4,6 +4,10 @@ local DIR_DOWN = 1
 local DIR_UP = -1
 
 local function is_blank_line(line)
+  local last = vim.fn.line "$"
+  if line < 1 or line > last then
+    return true
+  end
   return vim.fn.getline(line):match "^%s*$" ~= nil
 end
 
@@ -18,18 +22,25 @@ local function clamp_line(line)
 end
 
 local function seek_nonblank(line, direction, last)
-  local bound = direction > 0 and last or 1
-  while line ~= bound and is_blank_line(line) do
-    line = line + direction
+  local ln = line
+  if ln < 1 then
+    ln = 1
+  elseif ln > last then
+    ln = last
   end
-  if is_blank_line(line) then
+  local bound = direction > 0 and last or 1
+  while ln ~= bound and is_blank_line(ln) do
+    ln = ln + direction
+  end
+  if is_blank_line(ln) then
     return nil
   end
-  return line
+  return ln
 end
 
 local function text_block_edge(line, direction)
   local cur, last = clamp_line(line)
+  ---@type integer|nil
   local pos = is_blank_line(cur) and seek_nonblank(cur, direction, last) or cur
   if not pos then
     pos = seek_nonblank(cur, -direction, last)
@@ -179,30 +190,65 @@ local function next_semantic_boundary(current_line, direction)
   return nil
 end
 
+local function next_blank_boundary(line, direction)
+  local edge = text_block_edge(line, direction)
+  if (direction > 0 and edge > line) or (direction < 0 and edge < line) then
+    return edge
+  end
+  local cur, last = clamp_line(line)
+  local start = direction > 0 and seek_nonblank(cur + 1, 1, last) or seek_nonblank(cur - 1, -1, last)
+  if not start then
+    return direction > 0 and last or 1
+  end
+  return text_block_edge(start, direction)
+end
+
 local function move_cursor(line, direction)
-  vim.api.nvim_win_set_cursor(0, { line, 0 })
+  local last = vim.fn.line "$"
+  local ln = line
+  if ln < 1 then
+    ln = 1
+  elseif ln > last then
+    ln = last
+  end
+  vim.api.nvim_win_set_cursor(0, { ln, 0 })
   vim.cmd(direction > 0 and "normal! g_" or "normal! ^")
 end
 
 local function step(which)
   local direction = which == "next_end" and DIR_DOWN or DIR_UP
   local current = vim.fn.line "."
-  local target = next_semantic_boundary(current, direction)
-  if not target then
-    local edge = text_block_edge(current, direction)
-    if current == edge then
-      vim.cmd("normal! " .. (direction > 0 and "}" or "{"))
-      edge = text_block_edge(vim.fn.line ".", direction)
+  local blank = next_blank_boundary(current, direction)
+  local sem = next_semantic_boundary(current, direction)
+
+  local target
+  if direction > 0 then
+    if blank and sem then
+      target = (blank < sem) and blank or sem
+    else
+      target = blank or sem
     end
-    target = edge
+  else
+    if blank and sem then
+      target = (blank > sem) and blank or sem
+    else
+      target = blank or sem
+    end
   end
+
+  if not target then
+    target = text_block_edge(current, direction)
+  end
+
   move_cursor(target, direction)
 end
 
-function M.section_nav(which)
-  local n = vim.v.count1
-  for _ = 1, n do
-    step(which)
+function M.section_nav_fn(which)
+  return function()
+    local n = vim.v.count1
+    for _ = 1, n do
+      step(which)
+    end
   end
 end
 

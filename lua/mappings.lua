@@ -1,6 +1,8 @@
 require "nvchad.mappings"
-require "utils.section_nav"
 
+local sn = require "utils.section_nav"
+local gs = require "gitsigns"
+local gsec = require "utils.git_section"
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
@@ -69,9 +71,37 @@ map("v", "<", "<gv")
 map("v", ">", ">gv")
 
 -- Improved "{" and "}" to move to a non blank line, instead of a blank line
-map({ "n", "x", "o" }, "{", function()
-  require("utils.section_nav").section_nav "prev_start"
-end, { silent = true, desc = "Move cursor to block start" })
-map({ "n", "x", "o" }, "}", function()
-  require("utils.section_nav").section_nav "next_end"
-end, { silent = true, desc = "Move cursor to block end" })
+map({ "n", "x", "o" }, "{", sn.section_nav_fn "prev_start", { desc = "Move cursor to block start" })
+map({ "n", "x", "o" }, "}", sn.section_nav_fn "next_end", { desc = "Move cursor to block end" })
+
+-- Search and replace
+map(
+  "n",
+  "<leader>ro",
+  "<CMD>SearchReplaceSingleBufferOpen<CR>",
+  { desc = "SearchReplace Input string", table.unpack(opts) }
+)
+map(
+  "n",
+  "<leader>rw",
+  "<CMD>SearchReplaceSingleBufferCWord<CR>",
+  { desc = "SearchReplace Current word", table.unpack(opts) }
+)
+map(
+  "v",
+  "<leader>ro",
+  "<CMD>SearchReplaceWithinVisualSelection<CR>",
+  { desc = "SearchReplace In current selected area", table.unpack(opts) }
+)
+map(
+  "v",
+  "<leader>rs",
+  "<CMD>SearchReplaceSingleBufferVisualSelection<CR>",
+  { desc = "SearchReplace Selected string", table.unpack(opts) }
+)
+
+-- Git
+map("n", "<leader>gd", gs.preview_hunk_inline, { desc = "Git Hunk (section) diff", table.unpack(opts) })
+map("n", "<leader>gr", gsec.reset_current_line, { desc = "Git Current line reset", table.unpack(opts) })
+map("v", "<leader>gr", gsec.reset_selected_lines, { desc = "Git Selected lines reset", table.unpack(opts) })
+map("n", "<leader>gR", ":Gitsigns reset_hunk<CR>", { desc = "Git Hunk (section) revert", table.unpack(opts) })
