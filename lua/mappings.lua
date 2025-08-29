@@ -1,5 +1,7 @@
 require "nvchad.mappings"
 
+local hover = require "utils.hover"
+local def = require "utils.definition"
 local sn = require "utils.section_nav"
 local gs = require "gitsigns"
 local gsec = require "utils.git_section"
@@ -7,18 +9,8 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
 -- LSP related mappings with descriptions
-map(
-  "n",
-  "K",
-  require("utils.hover").hover_with_diagnostics,
-  { desc = "Code Description and diagnostics", table.unpack(opts) }
-)
-map(
-  "n",
-  "<leader>cd",
-  require("utils.definition").definition_popup,
-  { desc = "Code Go to definition", table.unpack(opts) }
-)
+map("n", "K", hover.hover_with_diagnostics, { desc = "Code Description and diagnostics", table.unpack(opts) })
+map("n", "<leader>cd", def.definition_popup, { desc = "Code Go to definition", table.unpack(opts) })
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action", table.unpack(opts) })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Code Rename", table.unpack(opts) })
 map("n", "<leader>cu", require("telescope.builtin").lsp_references, { noremap = true, silent = true })
