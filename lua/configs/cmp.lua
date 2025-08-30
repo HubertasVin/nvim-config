@@ -26,7 +26,7 @@ require("blink.cmp").setup {
     },
   },
   signature = {
-    enabled = true,
+    enabled = false,
     window = {
       border = "rounded",
       scrollbar = false,
