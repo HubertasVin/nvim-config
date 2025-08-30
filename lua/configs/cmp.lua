@@ -29,7 +29,7 @@ require("blink.cmp").setup {
     enabled = true,
     window = {
       border = "rounded",
-      scrollbar = true,
+      scrollbar = false,
     },
   },
   sources = {
