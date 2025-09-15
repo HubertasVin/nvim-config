@@ -10,6 +10,7 @@ local function apply_indent()
   vim.bo.shiftwidth = size
   vim.bo.tabstop = size
   vim.bo.expandtab = use_tabs
+	vim.opt.textwidth = 0
 end
 
 vim.api.nvim_create_autocmd("FileType", {
