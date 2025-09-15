@@ -1,7 +1,7 @@
 local M = {}
 
 M.maxLineLength = tonumber(vim.g.LSP_MAX_LENGTH) or tonumber(vim.env.LSP_MAX_LENGTH) or 120
-M.use_tabs = vim.g.INDENT_USE_TABS == true
+M.default_use_tabs = vim.g.INDENT_USE_TABS == true
 M.default_indent_size = tonumber(vim.g.DEFAULT_INDENT_SIZE) or 4
 
 M.indent_size = {
@@ -19,20 +19,10 @@ M.indent_size = {
   jsx = 2,
   tsx = 2,
   helm = 2,
-  c = 4,
-  cpp = 4,
-  cs = 4,
-  go = 4,
-  html = 4,
-  java = 4,
-  php = 4,
-  python = 4,
-  rust = 4,
-  sql = 4,
-  sh = 4,
-  bash = 4,
-  zsh = 4,
-  fish = 4,
+}
+
+M.use_tabs = {
+	python = true,
 }
 
 return M

@@ -2,7 +2,7 @@ local constants = require "configs.format_const"
 
 local function indent_for(ft)
   local size = (constants.indent_size and constants.indent_size[ft]) or constants.default_indent_size or 4
-  local use_tabs = constants.use_tabs == true
+  local use_tabs = (constants.use_tabs and constants.use_tabs[ft]) or constants.default_use_tabs or false
   return size, use_tabs
 end
 
