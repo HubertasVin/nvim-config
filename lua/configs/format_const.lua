@@ -18,6 +18,7 @@ M.indent_size = {
   typescriptreact = 2,
   jsx = 2,
   tsx = 2,
+	vue = 2,
   helm = 2,
 }
 

@@ -29,4 +29,5 @@ return {
   "taplo",
   "yaml-language-server",
   "yamllint",
+	"vue-language-server",
 }

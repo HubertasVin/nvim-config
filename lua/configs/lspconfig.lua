@@ -5,6 +5,8 @@ local capabilities = require("blink.cmp").get_lsp_capabilities()
 local lspconfig = require "lspconfig"
 local constants = require "configs.format_const"
 
+local vue_language_server_path = vim.fn.expand "$MASON/packages/vue-language-server/node_modules/@vue/language-server"
+
 local function mason_installed(name)
   local ok, mr = pcall(require, "mason-registry")
   if not ok then
@@ -38,17 +40,43 @@ local servers = {
   "rust_analyzer",
   "tailwindcss",
   "taplo",
-  "ts_ls",
   "yamlls",
 }
 
 for _, lsp in ipairs(servers) do
-  lspconfig[lsp].setup {
-    on_attach = on_attach,
-    on_init = on_init,
-    capabilities = capabilities,
-  }
+  if lsp then
+    lspconfig[lsp].setup {
+      on_attach = on_attach,
+      on_init = on_init,
+      capabilities = capabilities,
+    }
+  end
 end
+
+lspconfig.ts_ls.setup {
+  init_options = {
+    plugins = {
+      {
+        name = "@vue/typescript-plugin",
+        location = vue_language_server_path,
+        languages = { "vue" },
+      },
+    },
+  },
+  filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+}
+
+lspconfig.volar.setup {
+  on_attach = on_attach,
+  on_init = on_init,
+  capabilities = capabilities,
+  filetypes = { "vue" },
+  init_options = {
+    vue = {
+      hybridMode = false,
+    },
+  },
+}
 
 lspconfig.bashls.setup {
   filetypes = { "sh", "zsh" },
@@ -76,7 +104,7 @@ lspconfig.pylsp.setup {
     pylsp = {
       plugins = {
         pycodestyle = {
-					ignore = { "W191" },
+          ignore = { "W191" },
           maxLineLength = constants.maxLineLength,
         },
       },
