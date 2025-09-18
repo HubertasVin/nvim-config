@@ -9,6 +9,10 @@ local gs = require "gitsigns"
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
+-- Remap scroll down and scroll up binds
+vim.api.nvim_set_keymap("n", "<C-j>", "<C-d>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<C-k>", "<C-u>", { noremap = true, silent = true })
+
 -- LSP related mappings with descriptions
 map("n", "K", util_hover.hover_with_diagnostics, { desc = "Code Description and diagnostics", table.unpack(opts) })
 map("n", "<leader>cd", util_def.definition_popup, { desc = "Code Go to definition", table.unpack(opts) })
