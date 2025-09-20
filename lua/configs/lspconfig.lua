@@ -1,148 +1,100 @@
 local on_attach = require("nvchad.configs.lspconfig").on_attach
 local on_init = require("nvchad.configs.lspconfig").on_init
-local capabilities = require("blink.cmp").get_lsp_capabilities()
-
-local lspconfig = require "lspconfig"
 local constants = require "configs.format_const"
 
-local vue_language_server_path = vim.fn.expand "$MASON/packages/vue-language-server/node_modules/@vue/language-server"
-
-local function mason_installed(name)
-  local ok, mr = pcall(require, "mason-registry")
-  if not ok then
-    return false
-  end
-  local ok_pkg, pkg = pcall(mr.get_package, name)
-  if not ok_pkg then
-    return false
-  end
-  return pkg:is_installed()
-end
-
 local servers = {
-  "angularls",
-  "ansiblels",
-  "bashls",
-  "clangd",
-  mason_installed "csharp-language-server" and "csharp_ls" or nil,
-  "cssls",
-  "dockerls",
-  "docker_compose_language_service",
-  "html",
-  "helm_ls",
-  mason_installed "gopls" and "gopls" or nil,
-  "jdtls",
-  "jsonls",
-  "lemminx",
-  "lua_ls",
-  "sqlls",
-  "pylsp",
-  "rust_analyzer",
-  "tailwindcss",
-  "taplo",
-  "yamlls",
-}
+  angularls = {},
+  ansiblels = {},
+  clangd = {},
+  csharp_ls = {},
+  cssls = {},
+  dockerls = {},
+  docker_compose_language_service = {},
+  gopls = {},
+  helm_ls = {},
+  jdtls = {},
+  jsonls = {},
+  lemminx = {},
+  lua_ls = {},
+  sqlls = {
+		on_attach = function(client, bufnr)
+			print(vim.inspect(client.server_capabilities))
+		end
+	},
+  tailwindcss = {},
+  taplo = {},
 
-for _, lsp in ipairs(servers) do
-  if lsp then
-    lspconfig[lsp].setup {
-      on_attach = on_attach,
-      on_init = on_init,
-      capabilities = capabilities,
-    }
-  end
-end
+  bashls = { filetypes = { "sh", "zsh" } },
 
-lspconfig.ts_ls.setup {
-  init_options = {
-    plugins = {
-      {
-        name = "@vue/typescript-plugin",
-        location = vue_language_server_path,
-        languages = { "vue" },
+  ts_ls = {
+    init_options = {
+      plugins = {
+        {
+          name = "@vue/typescript-plugin",
+          location = vim.fn.expand "$MASON/packages/vue-language-server/node_modules/@vue/language-server",
+          languages = { "vue" },
+        },
+      },
+    },
+    filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+  },
+
+  vue_ls = {
+    filetypes = { "vue" },
+    init_options = {
+      vue = {
+        hybridMode = false,
       },
     },
   },
-  filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
-}
 
-lspconfig.volar.setup {
-  on_attach = on_attach,
-  on_init = on_init,
-  capabilities = capabilities,
-  filetypes = { "vue" },
-  init_options = {
-    vue = {
-      hybridMode = false,
-    },
+  html = {
+    filetypes = { "html", "typescriptreact", "javascriptreact" },
+    cmd = { "vscode-html-language-server", "--stdio" },
   },
-}
 
-lspconfig.bashls.setup {
-  filetypes = { "sh", "zsh" },
-}
-
-lspconfig.sqlls.setup {
-  on_attach = on_attach,
-  on_init = on_init,
-  capabilities = capabilities,
-  root_dir = function(fname)
-    return lspconfig.util.root_pattern ".git"(fname) or vim.fs.dirname(fname)
-  end,
-}
-
-lspconfig.html.setup {
-  on_attach = on_attach,
-  on_init = on_init,
-  capabilities = capabilities,
-  filetypes = { "html", "typescriptreact", "javascriptreact" },
-  cmd = { "vscode-html-language-server", "--stdio" },
-}
-
-lspconfig.pylsp.setup {
-  settings = {
-    pylsp = {
-      plugins = {
-        pycodestyle = {
-          ignore = { "W191" },
-          maxLineLength = constants.maxLineLength,
+  pylsp = {
+    settings = {
+      pylsp = {
+        plugins = {
+          pycodestyle = {
+            ignore = { "W191" },
+            maxLineLength = constants.maxLineLength,
+          },
         },
       },
     },
   },
-}
 
-lspconfig.rust_analyzer.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-  settings = {
-    ["rust-analyzer"] = {
-      assist = {
-        importGranularity = "module",
-        importPrefix = "by_self",
-      },
-      cargo = {
-        allFeatures = true,
-      },
-      checkOnSave = {
-        command = "clippy",
+  rust_analyzer = {
+    settings = {
+      ["rust-analyzer"] = {
+        assist = {
+          importGranularity = "module",
+          importPrefix = "by_self",
+        },
+        cargo = { allFeatures = true },
+        checkOnSave = { command = "clippy" },
       },
     },
   },
+
+  yamlls = {
+    on_attach = function(client, bufnr)
+      if vim.bo[bufnr].filetype == "helm" then
+        client.stop()
+        return
+      end
+      on_attach(client, bufnr)
+    end,
+    filetypes = { "yaml", "yml" },
+  },
 }
 
--- Set filetype to helm if detected
-lspconfig.yamlls.setup {
-  on_attach = function(client, bufnr)
-    if vim.bo[bufnr].filetype == "helm" then
-      client.stop()
-      return
-    end
-    on_attach(client, bufnr)
-  end,
-  capabilities = capabilities,
-  filetypes = { "yaml", "yml" },
-}
+for server_name, config in pairs(servers) do
+  vim.lsp.config(server_name, config)
+  vim.lsp.enable(server_name)
+end
 
 -- Global default border for all LSP float windows
 local orig_open_floating = vim.lsp.util.open_floating_preview

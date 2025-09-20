@@ -173,13 +173,22 @@ function M.hover_with_diagnostics()
   local bufnr = 0
   local diag_lines, diag_hl = build_diag_section(bufnr)
 
+  -- Get LSP clients attached to the current buffer
   local clients = vim.lsp.get_clients { bufnr = bufnr }
   if #clients == 0 then
     show_combined(diag_lines, diag_hl, nil)
     return
   end
 
-  local enc = clients[1].offset_encoding or "utf-16"
+  -- If hover is not supported, show diagnostics only
+  local client = clients[1]
+  if not client.server_capabilities.hoverProvider then
+    show_combined(diag_lines, diag_hl, nil)
+    return
+  end
+
+  -- If hover is supported, request hover information
+  local enc = client.offset_encoding or "utf-16"
   local params = vim.lsp.util.make_position_params(0, enc)
 
   vim.lsp.buf_request(0, "textDocument/hover", params, function(err, result)
