@@ -36,7 +36,7 @@ return {
         "yaml",
         "vim",
         "vimdoc",
-				"vue",
+        "vue",
       },
     },
     highlight = { enable = true, additional_vim_regex_highlighting = false },
@@ -126,11 +126,15 @@ return {
       }
     end,
   },
-	{
-		"m4xshen/autoclose.nvim",
-		config = function ()
-			require("autoclose").setup()
-		end,
-		event = "InsertEnter",
-	},
+  {
+    "m4xshen/autoclose.nvim",
+    config = function()
+      require("autoclose").setup {
+        options = {
+          disabled_filetypes = { "markdown", "text" },
+        },
+      }
+    end,
+    event = "InsertEnter",
+  },
 }
