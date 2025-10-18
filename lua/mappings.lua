@@ -18,7 +18,7 @@ map("n", "K", util_hover.hover_with_diagnostics, { desc = "Code Description and 
 map("n", "<leader>cd", util_def.definition_popup, { desc = "Code Go to definition", table.unpack(opts) })
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action", table.unpack(opts) })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Code Rename", table.unpack(opts) })
-map("n", "<leader>cu", require("telescope.builtin").lsp_references, { noremap = true, silent = true })
+map("n", "<leader>cu", require("telescope.builtin").lsp_references, { desc = "Code Usages", table.unpack(opts) })
 
 -- Format related mappings
 map("n", "<leader>cf", require("conform").format, { desc = "Format File code", table.unpack(opts) })

@@ -12,18 +12,19 @@ M.indent_size = {
   xml = 2,
   css = 2,
   scss = 2,
+  html = 2,
   javascript = 2,
   javascriptreact = 2,
   typescript = 2,
   typescriptreact = 2,
   jsx = 2,
   tsx = 2,
-	vue = 2,
+  vue = 2,
   helm = 2,
 }
 
 M.use_tabs = {
-	python = true,
+  python = true,
 }
 
 return M
