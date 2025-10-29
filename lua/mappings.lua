@@ -51,28 +51,28 @@ map({ "n", "x", "o" }, "}", util_sn.section_nav_fn "next_end", { desc = "Move cu
 
 -- Search and replace
 map(
-  "n",
-  "<leader>ro",
-  "<CMD>SearchReplaceSingleBufferOpen<CR>",
-  { desc = "SearchReplace Input string", table.unpack(opts) }
+	"n",
+	"<leader>ro",
+	"<CMD>SearchReplaceSingleBufferOpen<CR>",
+	{ desc = "SearchReplace Input string", table.unpack(opts) }
 )
 map(
-  "n",
-  "<leader>rw",
-  "<CMD>SearchReplaceSingleBufferCWord<CR>",
-  { desc = "SearchReplace Current word", table.unpack(opts) }
+	"n",
+	"<leader>rw",
+	"<CMD>SearchReplaceSingleBufferCWord<CR>",
+	{ desc = "SearchReplace Current word", table.unpack(opts) }
 )
 map(
-  "v",
-  "<leader>ro",
-  "<CMD>SearchReplaceWithinVisualSelection<CR>",
-  { desc = "SearchReplace In current selected area", table.unpack(opts) }
+	"v",
+	"<leader>ro",
+	"<CMD>SearchReplaceWithinVisualSelection<CR>",
+	{ desc = "SearchReplace In current selected area", table.unpack(opts) }
 )
 map(
-  "v",
-  "<leader>rs",
-  "<CMD>SearchReplaceSingleBufferVisualSelection<CR>",
-  { desc = "SearchReplace Selected string", table.unpack(opts) }
+	"v",
+	"<leader>rs",
+	"<CMD>SearchReplaceSingleBufferVisualSelection<CR>",
+	{ desc = "SearchReplace Selected string", table.unpack(opts) }
 )
 
 -- Git
