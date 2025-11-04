@@ -1,5 +1,19 @@
 require "nvchad.options"
 
+-- Fix for broken wl-copy
+-- vim.g.clipboard = {
+--   name = "wl-clipboard-detached",
+--   copy = {
+--     ["+"] = { "sh", "-c", "cat | wl-copy --foreground --type text/plain &" },
+--     ["*"] = { "sh", "-c", "cat | wl-copy --foreground --primary --type text/plain &" },
+--   },
+--   paste = {
+--     ["+"] = { "wl-paste", "--no-newline", "--type", "text/plain" },
+--     ["*"] = { "wl-paste", "--no-newline", "--primary", "--type", "text/plain" },
+--   },
+--   cache_enabled = 1,
+-- }
+
 local constants = require "configs.format_const"
 
 local function apply_indent()

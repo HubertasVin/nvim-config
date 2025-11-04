@@ -24,7 +24,7 @@ M.indent_size = {
 }
 
 M.expand_tabs = {
-	python = false,
+	python = true,
 	lua = false,
 }
 

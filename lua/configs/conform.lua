@@ -3,7 +3,7 @@ local constants = require "configs.format_const"
 local function indent_for(ft)
 	local size = (constants.indent_size and constants.indent_size[ft]) or constants.default_indent_size or 4
 	local use_tabs = (constants.expand_tabs and constants.expand_tabs[ft]) or constants.default_expand_tabs or false
-	return size, use_tabs
+	return size, not use_tabs
 end
 
 local function rustfmt_config_path(width, indent_size, use_tabs)
