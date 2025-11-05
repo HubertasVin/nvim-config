@@ -157,8 +157,9 @@ local options = {
 		beautysh = {
 			command = "beautysh",
 			args = function()
-				local indent = select(1, indent_for(vim.bo.filetype))
-				return { "--indent-size", tostring(indent), "$FILENAME" }
+				local indent, use_tabs = indent_for(vim.bo.filetype)
+
+				return { "--indent-size", tostring(indent), use_tabs and "--tab", "$FILENAME" }
 			end,
 			stdin = false,
 		},
