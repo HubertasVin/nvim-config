@@ -25,7 +25,7 @@ M.indent_size = {
 
 M.expand_tabs = {
 	python = true,
-	lua = false,
+	yaml = true,
 }
 
 return M
