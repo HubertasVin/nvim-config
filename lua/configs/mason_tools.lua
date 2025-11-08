@@ -3,6 +3,7 @@ return {
 	"ansible-language-server",
 	"ansible-lint",
 	"bash-language-server",
+	"beautysh",
 	"black",
 	"clangd",
 	"clang-format",
