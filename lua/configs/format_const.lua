@@ -9,6 +9,7 @@ M.indent_size = {
 	json = 2,
 	yaml = 2,
 	yml = 2,
+	toml = 2,
 	xml = 2,
 	css = 2,
 	scss = 2,
