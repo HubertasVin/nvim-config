@@ -1,5 +1,16 @@
 return {
 	{
+		"ray-x/lsp_signature.nvim",
+		event = "VeryLazy",
+		opts = {
+			hint_enable = true,
+			handler_opts = {
+				border = "rounded",
+			},
+			floating_window = true,
+		},
+	},
+	{
 		"mfussenegger/nvim-lint",
 		event = { "BufReadPre", "BufNewFile" },
 		config = function()

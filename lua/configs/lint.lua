@@ -19,8 +19,25 @@ lint.linters_by_ft = {
 	yaml = { "yamllint" },
 }
 
+local function debounce(ms, fn)
+	local timer = vim.uv.new_timer()
+	return function(...)
+		local args = { ... }
+		timer:stop()
+		timer:start(ms, 0, function()
+			timer:stop()
+			vim.schedule(function()
+				fn(unpack(args))
+			end)
+		end)
+	end
+end
+
+local do_lint = debounce(150, function()
+	lint.try_lint()
+end)
+
 vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {
-	callback = function()
-		lint.try_lint()
-	end,
+	group = vim.api.nvim_create_augroup("nvim-lint", { clear = true }),
+	callback = do_lint,
 })
