@@ -1,9 +1,11 @@
 return {
 	{
-		"wakatime/vim-wakatime",
-		lazy = false,
+		"mfussenegger/nvim-lint",
+		event = { "BufReadPre", "BufNewFile" },
+		config = function()
+			require "configs.lint"
+		end,
 	},
-
 	{
 		"nvim-treesitter/nvim-treesitter",
 		opts = {
