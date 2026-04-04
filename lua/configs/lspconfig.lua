@@ -1,6 +1,14 @@
+local lspconfig = require "lspconfig"
 local on_attach = require("nvchad.configs.lspconfig").on_attach
 local on_init = require("nvchad.configs.lspconfig").on_init
+local capabilities = require("nvchad.configs.lspconfig").capabilities
 local constants = require "configs.format_const"
+
+local defaults = {
+	on_attach = on_attach,
+	on_init = on_init,
+	capabilities = capabilities,
+}
 
 local servers = {
 	angularls = {},
@@ -22,6 +30,7 @@ local servers = {
 	},
 	tailwindcss = {},
 	taplo = {},
+	terraformls = {},
 
 	bashls = { filetypes = { "sh", "zsh" } },
 
@@ -31,18 +40,19 @@ local servers = {
 				{
 					name = "@vue/typescript-plugin",
 					location = vim.fn.expand "$MASON/packages/vue-language-server/node_modules/@vue/language-server",
-					languages = { "vue" },
+					languages = { "javascript", "typescript", "vue" },
 				},
 			},
 		},
 		filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
 	},
 
-	vue_ls = {
+	volar = {
+		cmd = { vim.fn.expand "$MASON/bin/vue-language-server", "--stdio" },
 		filetypes = { "vue" },
 		init_options = {
 			vue = {
-				hybridMode = false,
+				hybridMode = true,
 			},
 		},
 	},
@@ -91,12 +101,13 @@ local servers = {
 }
 
 for server_name, config in pairs(servers) do
-	vim.lsp.config(server_name, config)
-	vim.lsp.enable(server_name)
+	local merged = vim.tbl_deep_extend("force", defaults, config)
+	lspconfig[server_name].setup(merged)
 end
 
 -- Global default border for all LSP float windows
 local orig_open_floating = vim.lsp.util.open_floating_preview
+---@diagnostic disable-next-line: duplicate-set-field
 function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
 	opts = opts or {}
 	opts.border = opts.border or "rounded"

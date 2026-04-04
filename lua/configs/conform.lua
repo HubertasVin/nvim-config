@@ -23,7 +23,16 @@ local function rustfmt_config_path(width, indent_size, use_tabs)
 end
 
 local options = {
+	-- If needed format on save:
+	format_on_save = {
+		timeout_ms = 1000,
+		lsp_fallback = true,
+	},
+
 	formatters_by_ft = {
+		terraform = { "terraform_fmt" },
+		["terraform-vars"] = { "terraform_fmt" },
+		hcl = { "terraform_fmt" },
 		angular = { "prettier" },
 		bash = { "beautysh" },
 		sh = { "beautysh" },

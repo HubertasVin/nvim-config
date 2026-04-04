@@ -1,7 +1,6 @@
 return {
 	"angular-language-server",
 	"ansible-language-server",
-	"ansible-lint",
 	"bash-language-server",
 	"beautysh",
 	"black",
@@ -29,6 +28,15 @@ return {
 	"tailwindcss-language-server",
 	"taplo",
 	"yaml-language-server",
-	"yamllint",
 	"vue-language-server",
+	"terraform_ls",
+	"terraform",
+	-- LINT:
+	"tflint", -- terraform
+	"hadolint", -- dockerfile
+	"yamllint", -- yaml
+	"golangcilint", -- GO
+	"eslint_d", -- js, jsx, ts, tsx
+	"shellcheck", -- Shell
+	"ansible-lint", -- Ansible
 }

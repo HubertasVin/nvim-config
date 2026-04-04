@@ -15,6 +15,7 @@ vim.api.nvim_set_keymap("n", "<C-k>", "<C-u>", { noremap = true, silent = true }
 
 -- LSP related mappings with descriptions
 map("n", "K", util_hover.hover_with_diagnostics, { desc = "Code Description and diagnostics", unpack(opts) })
+map("i", "<C-s>", vim.lsp.buf.signature_help, { desc = "Show function signature", unpack(opts) })
 map("n", "<leader>cd", util_def.definition_popup, { desc = "Code Go to definition", unpack(opts) })
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action", unpack(opts) })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Code Rename", unpack(opts) })
@@ -50,18 +51,8 @@ map({ "n", "x", "o" }, "{", util_sn.section_nav_fn "prev_start", { desc = "Move 
 map({ "n", "x", "o" }, "}", util_sn.section_nav_fn "next_end", { desc = "Move cursor to block end" })
 
 -- Search and replace
-map(
-	"n",
-	"<leader>ro",
-	"<CMD>SearchReplaceSingleBufferOpen<CR>",
-	{ desc = "SearchReplace Input string", unpack(opts) }
-)
-map(
-	"n",
-	"<leader>rw",
-	"<CMD>SearchReplaceSingleBufferCWord<CR>",
-	{ desc = "SearchReplace Current word", unpack(opts) }
-)
+map("n", "<leader>ro", "<CMD>SearchReplaceSingleBufferOpen<CR>", { desc = "SearchReplace Input string", unpack(opts) })
+map("n", "<leader>rw", "<CMD>SearchReplaceSingleBufferCWord<CR>", { desc = "SearchReplace Current word", unpack(opts) })
 map(
 	"v",
 	"<leader>ro",
