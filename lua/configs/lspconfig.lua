@@ -83,7 +83,10 @@ local servers = {
 					importPrefix = "by_self",
 				},
 				cargo = { allFeatures = true },
-				checkOnSave = { command = "clippy" },
+				checkOnSave = true,
+				check = {
+					command = "clippy",
+				},
 			},
 		},
 	},
@@ -101,6 +104,12 @@ local servers = {
 }
 
 for server_name, config in pairs(servers) do
+	-- NEWER WAY with lsp.config and lsp.enable.
+	-- doesn't always work yet though.
+	-- E.g. javascript rename capability missing from additions.
+	-- vim.lsp.config(server_name, config)
+	-- vim.lsp.enable(server_name)
+	-- OLDER WAY:
 	local merged = vim.tbl_deep_extend("force", defaults, config)
 	lspconfig[server_name].setup(merged)
 end
